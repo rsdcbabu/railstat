@@ -1,0 +1,10 @@
+application: <appengine_app_id>
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /trainstatus
+  script: trainstatus.py
+- url: /
+  script: hello.py
