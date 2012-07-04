@@ -22,6 +22,7 @@ class MainPage(webapp.RequestHandler):
                 ist_datetime = gmt_datetime + datetime.timedelta(hours=5,minutes=30)
                 ist_date = ist_datetime.date().isoformat()
                 train_start_date = ist_date
+            user_train_date = train_start_date
         else:
             self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status updater: <br /> Usage info: <br />@railstat [train number] [train departure date in the format yyyy-mm-dd] <br />Eg: @railstat 12631 2012-06-25</body></html>')
             return 
@@ -44,6 +45,9 @@ class MainPage(webapp.RequestHandler):
             s = urlfetch.fetch(req)
             status_content = s.content
             json_content = json.loads(status_content.replace('jQuery%s('%random_number1, '').replace(')',''))
+            json_key = json_content['keys']
+            if json_key:
+                train_start_date = json_key[0].replace('%s_'%train_number,'')
             if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info'].has_key('last_stn'):
                 self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
                 return 
@@ -54,6 +58,9 @@ class MainPage(webapp.RequestHandler):
             current_last_station = last_location_code
            
             next_station_code = ''
+            if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))].has_key('station_updates'):
+                self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
+                return
             station_updates = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['station_updates']
             delay_mins = ''
             station_next_to_current = False
