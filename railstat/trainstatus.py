@@ -111,7 +111,7 @@ class MainPage(webapp.RequestHandler):
                 eta_time =  '%s:%s' % (ns_eta.hour, ns_eta.minute)
                 eta_date =  '%s-%s-%s' % (ns_eta.day, ns_eta.month, ns_eta.year)
                 msg = msg+"<br /><br />Next Station update:<br /><br />Station Name: %s<br />Scheduled: %s(%s)<br />Expected: %s(%s)" % (next_station_name, sta_time, sta_date, eta_time, eta_date)
-            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status update - %s : %s' % (train_number, train_start_date))
+            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status update - %s : %s' % (train_number, user_train_date))
             self.response.out.write(msg+"</body></html>")
             
 
