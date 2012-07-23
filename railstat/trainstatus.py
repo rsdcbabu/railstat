@@ -89,7 +89,11 @@ class MainPage(webapp.RequestHandler):
                 if not last_location.strip() and last_location_code.strip():
                     if each_station_schedule['station_code'] == last_location_code:
                         last_location = each_station_schedule['station_name']
-            
+            if not last_location.strip() and last_location_code.strip():
+                for each_station_schedule in json_train_schedule:
+                    if each_station_schedule['station_code'] == last_location_code:
+                        last_location = each_station_schedule['station_name']
+                        break
             train_status = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['status']
             if train_status != 'running':
                 next_station_code = 'ENDOFTRIP'
