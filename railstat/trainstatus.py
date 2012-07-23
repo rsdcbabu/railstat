@@ -49,7 +49,18 @@ class MainPage(webapp.RequestHandler):
             if json_key:
                 train_start_date = json_key[0].replace('%s_'%train_number,'')
             if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info'].has_key('last_stn'):
-                self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
+                if json_train_schedule:
+                    for each_tr_stn in json_train_schedule:
+                        if str(each_tr_stn['sta']) == 'None':
+                            dept_time = each_tr_stn['std']
+                            dept_name = each_tr_stn['station_name']
+                            ft = datetime.datetime.strptime(dept_time,'%Y-%m-%dT%H:%M:%S+05:30')
+                            readable_time =  '%s:%s' % (ft.hour, ft.minute)
+                            readable_date =  '%s-%s-%s' % (ft.day, ft.month, ft.year)
+                            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train(%s) is scheduled to start from %s at %s (%s)<br /></body></html>'%(train_number, dept_name, readable_time, readable_date)) 
+                            break
+                else:
+                    self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
                 return 
             last_location = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_name']
             last_location_code = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_code']
