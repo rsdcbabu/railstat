@@ -57,10 +57,10 @@ class MainPage(webapp.RequestHandler):
                             ft = datetime.datetime.strptime(dept_time,'%Y-%m-%dT%H:%M:%S+05:30')
                             readable_time =  '%s:%s' % (ft.hour, ft.minute)
                             readable_date =  '%s-%s-%s' % (ft.day, ft.month, ft.year)
-                            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train(%s) is scheduled to start from %s at %s (%s)<br /></body></html>'%(train_number, dept_name, readable_time, readable_date)) 
+                            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train(%s) is scheduled to start from %s at %s (%s)<br />Thanks to Railyatri.in</body></html>'%(train_number, dept_name, readable_time, readable_date)) 
                             break
                 else:
-                    self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
+                    self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
                 return 
             last_location = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_name']
             last_location_code = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_code']
@@ -70,7 +70,7 @@ class MainPage(webapp.RequestHandler):
            
             next_station_code = ''
             if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))].has_key('station_updates'):
-                self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br /></body></html>')
+                self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
                 return
             station_updates = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['station_updates']
             delay_mins = ''
@@ -106,8 +106,8 @@ class MainPage(webapp.RequestHandler):
                         last_location = each_station_schedule['station_name']
                         break
             train_status = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['status']
-            if train_status != 'running':
-                next_station_code = 'ENDOFTRIP'
+            #if train_status != 'running':
+            #    next_station_code = 'ENDOFTRIP'
             if next_station_code != 'ENDOFTRIP' and delay_mins == '':
                 delay_mins = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['delay_mins']
                 delay_mins = int(delay_mins)
@@ -127,7 +127,7 @@ class MainPage(webapp.RequestHandler):
                 eta_date =  '%s-%s-%s' % (ns_eta.day, ns_eta.month, ns_eta.year)
                 msg = msg+"<br /><br />Next Station update:<br /><br />Station Name: %s<br />Scheduled: %s(%s)<br />Expected: %s(%s)" % (next_station_name, sta_time, sta_date, eta_time, eta_date)
             self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status update - %s : %s' % (train_number, user_train_date))
-            self.response.out.write(msg+"</body></html>")
+            self.response.out.write(msg+"<br />Thanks to Railyatri.in</body></html>")
             
 
 application = webapp.WSGIApplication(
