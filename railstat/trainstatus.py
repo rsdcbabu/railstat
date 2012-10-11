@@ -31,7 +31,7 @@ class MainPage(webapp.RequestHandler):
         current_last_station = ''
         if not current_last_station:
             train_schedule_url = 'http://stage.railyatri.in/te/schedule/%s/%s.json?callback=jQuery%s&_=%s' % (train_number, train_start_date, random_number1, random_number2)
-            s = urlfetch.fetch(train_schedule_url)
+            s = urlfetch.fetch(train_schedule_url,deadline=60)
             train_schedule = s.content
             json_train_schedule = json.loads(train_schedule.replace('jQuery%s('%random_number1, '').replace(')',''))
             train_station_info = {}
@@ -42,7 +42,8 @@ class MainPage(webapp.RequestHandler):
                 all_station_codes = '%s,%s'%(all_station_codes,each_schedule['station_code'])
             all_station_codes = all_station_codes[1:]
             req = 'http://coa.railyatri.in/train/location.json?callback=jQuery%s&t=%s&s=%s&codes=%s&_=%s' % (random_number1,train_number,train_start_date,all_station_codes,random_number2)
-            s = urlfetch.fetch(req)
+            referer_string = 'http://railyatri.in/t/s/%s/%s?ref=start-days'%(train_number,train_start_date)
+            s = urlfetch.fetch(url=req,deadline=60,headers={'Referer':referer_string})
             status_content = s.content
             json_content = json.loads(status_content.replace('jQuery%s('%random_number1, '').replace(')',''))
             json_key = json_content['keys']
