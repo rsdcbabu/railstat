@@ -24,7 +24,7 @@ class MainPage(webapp.RequestHandler):
                 train_start_date = ist_date
             user_train_date = train_start_date
         else:
-            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status updater: <br /> Usage info: <br />@railstat [train number] [train departure date in the format yyyy-mm-dd] <br />Eg: @railstat 12631 2012-06-25</body></html>')
+            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Get latest update on your train running status. <br /> To use, SMS @railstat &lt;train number&gt; &lt;train departure date in the format yyyy-mm-dd&gt; to 92665 92665 <br />Eg: @railstat 12631 2012-06-25</body></html>')
             return 
         random_number1 = random().__str__()[2:]
         random_number2 = random().__str__()[2:]
