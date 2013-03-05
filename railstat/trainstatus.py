@@ -46,7 +46,10 @@ class MainPage(webapp.RequestHandler):
             req = 'http://railyatri.in/l/ajax/location.json?t=%s&s=%s&codes=%s&_=%s' % (train_number,train_start_date,all_station_codes,random_number2)
             #referer_string = 'http://railyatri.in/t/s/%s/%s?ref=start-days'%(train_number,train_start_date)
             #s = urlfetch.fetch(url=req,deadline=60,headers={'Referer':referer_string})
-            s = urlfetch.fetch(url=req,headers={'Cookie':'_railyatri_session=BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWQ1MmMwNzY0ZWNjYjU0NmJjMzg2NzhjODAzMjMwMTRkBjsAVEkiE2RhdGFfYWNjZXNzX2lkBjsARkkiFzB4MXkyeiUlOXYycyQkM2Y1ZAY7AEY%3D--c8e548e961cf3e035c07e0bfb5ccc9c293c25a33'},deadline=60)
+            main_page = urlfetch.fetch(url='http://railyatri.in',deadline=60)
+            cookie_val = main_page.headers.get('Set-Cookie')
+            #s = urlfetch.fetch(url=req,headers={'Cookie':'_railyatri_session=BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWQ1MmMwNzY0ZWNjYjU0NmJjMzg2NzhjODAzMjMwMTRkBjsAVEkiE2RhdGFfYWNjZXNzX2lkBjsARkkiFzB4MXkyeiUlOXYycyQkM2Y1ZAY7AEY%3D--c8e548e961cf3e035c07e0bfb5ccc9c293c25a33'},deadline=60)
+            s = urlfetch.fetch(url=req,headers={'Cookie':cookie_val},deadline=60)
             status_content = s.content
             json_content = json.loads(status_content.replace('jQuery%s('%random_number1, '').replace(')',''))
             if json_content.has_key('keys'):
