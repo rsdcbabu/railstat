@@ -31,7 +31,7 @@ class MainPage(webapp.RequestHandler):
         current_last_station = ''
         if not current_last_station:
             train_schedule_url = 'http://stage.railyatri.in/te/schedule/%s/%s.json?callback=jQuery%s&_=%s' % (train_number, train_start_date, random_number1, random_number2)
-            s = urlfetch.fetch(train_schedule_url,deadline=60)
+            s = urlfetch.fetch(url=train_schedule_url,deadline=60)
             train_schedule = s.content
             json_train_schedule = json.loads(train_schedule.replace('jQuery%s('%random_number1, '').replace(')',''))
             train_station_info = {}
@@ -41,13 +41,16 @@ class MainPage(webapp.RequestHandler):
                     train_station_info[each_schedule['station_code']] = each_schedule
                 all_station_codes = '%s,%s'%(all_station_codes,each_schedule['station_code'])
             all_station_codes = all_station_codes[1:]
-            req = 'http://coa.railyatri.in/train/location.json?callback=jQuery%s&t=%s&s=%s&codes=%s&_=%s' % (random_number1,train_number,train_start_date,all_station_codes,random_number2)
-            referer_string = 'http://railyatri.in/t/s/%s/%s?ref=start-days'%(train_number,train_start_date)
-            s = urlfetch.fetch(url=req,deadline=60,headers={'Referer':referer_string})
+            #req = 'http://coa-433841822.ap-southeast-1.elb.amazonaws.com/train/location.json?callback=jQuery%s&t=%s&s=%s&codes=%s&_=%s' % (random_number1,train_number,train_start_date,all_station_codes,random_number2)
+            all_station_codes = all_station_codes.replace(',','%2C')
+            req = 'http://railyatri.in/l/ajax/location.json?t=%s&s=%s&codes=%s&_=%s' % (train_number,train_start_date,all_station_codes,random_number2)
+            #referer_string = 'http://railyatri.in/t/s/%s/%s?ref=start-days'%(train_number,train_start_date)
+            #s = urlfetch.fetch(url=req,deadline=60,headers={'Referer':referer_string})
+            s = urlfetch.fetch(url=req,headers={'Cookie':'_railyatri_session=BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWQ1MmMwNzY0ZWNjYjU0NmJjMzg2NzhjODAzMjMwMTRkBjsAVEkiE2RhdGFfYWNjZXNzX2lkBjsARkkiFzB4MXkyeiUlOXYycyQkM2Y1ZAY7AEY%3D--c8e548e961cf3e035c07e0bfb5ccc9c293c25a33'},deadline=60)
             status_content = s.content
             json_content = json.loads(status_content.replace('jQuery%s('%random_number1, '').replace(')',''))
-            json_key = json_content['keys']
-            if json_key:
+            if json_content.has_key('keys'):
+                json_key = json_content['keys']
                 train_start_date = json_key[0].replace('%s_'%train_number,'')
             if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info'].has_key('last_stn'):
                 if json_train_schedule:
