@@ -3,6 +3,7 @@ import re
 import time,datetime
 from random import random
 import simplejson as json
+import urllib
 
 from google.appengine.api import users,urlfetch
 from google.appengine.ext import webapp
@@ -24,14 +25,25 @@ class MainPage(webapp.RequestHandler):
                 train_start_date = ist_date
             user_train_date = train_start_date
         else:
-            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Get latest update on your train running status. <br /> To use, SMS @railstat &lt;train number&gt; &lt;train departure date in the format yyyy-mm-dd&gt; to 92665 92665 <br />Eg: @railstat 12631 2012-06-25</body></html>')
+            self.response.out.write('<html><head><meta name="txtweb-appkey" content="app-id" /></head><body>Get latest update on your train running status. <br /> To use, SMS @railstat &lt;train number&gt; &lt;train departure date in the format yyyy-mm-dd&gt; to 92665 92665 <br />Eg: @railstat 12631 2012-06-25</body></html>')
             return 
         random_number1 = random().__str__()[2:]
         random_number2 = random().__str__()[2:]
         current_last_station = ''
         if not current_last_station:
-            train_schedule_url = 'http://stage.railyatri.in/te/schedule/%s/%s.json?callback=jQuery%s&_=%s' % (train_number, train_start_date, random_number1, random_number2)
-            s = urlfetch.fetch(url=train_schedule_url,deadline=60)
+            #train_schedule_url = 'http://stage.railyatri.in/te/schedule/%s/%s.json?callback=jQuery%s&_=%s' % (train_number, train_start_date, random_number1, random_number2)
+            main_page = urlfetch.fetch(url='http://trainenquiry.com',deadline=60)
+            cookie_val = main_page.headers.get('Set-Cookie')
+            train_schedule_url = 'http://www.trainenquiry.com/RailYatri.ashx'
+            payload_data = {}
+            payload_data['RequestType'] = 'Schedule'
+            payload_data['date_variable'] = train_start_date
+            payload_data['train_number_variable']  = train_number
+            payload_data = urllib.urlencode(payload_data)
+            req_headers = {}
+            req_headers['Cookie'] = cookie_val
+            req_headers['Referer'] = 'http://trainenquiry.com/CurrentRunningTrain.aspx'
+            s = urlfetch.fetch(url=train_schedule_url,payload=payload_data,method=urlfetch.POST,headers=req_headers,deadline=60)
             train_schedule = s.content
             json_train_schedule = json.loads(train_schedule.replace('jQuery%s('%random_number1, '').replace(')',''))
             train_station_info = {}
@@ -42,14 +54,22 @@ class MainPage(webapp.RequestHandler):
                 all_station_codes = '%s,%s'%(all_station_codes,each_schedule['station_code'])
             all_station_codes = all_station_codes[1:]
             #req = 'http://coa-433841822.ap-southeast-1.elb.amazonaws.com/train/location.json?callback=jQuery%s&t=%s&s=%s&codes=%s&_=%s' % (random_number1,train_number,train_start_date,all_station_codes,random_number2)
-            all_station_codes = all_station_codes.replace(',','%2C')
-            req = 'http://railyatri.in/l/ajax/location.json?t=%s&s=%s&codes=%s&_=%s' % (train_number,train_start_date,all_station_codes,random_number2)
+            #all_station_codes = all_station_codes.replace(',','%2C')
+            #req = 'http://railyatri.in/l/ajax/location.json?t=%s&s=%s&codes=%s&_=%s' % (train_number,train_start_date,all_station_codes,random_number2)
             #referer_string = 'http://railyatri.in/t/s/%s/%s?ref=start-days'%(train_number,train_start_date)
             #s = urlfetch.fetch(url=req,deadline=60,headers={'Referer':referer_string})
-            main_page = urlfetch.fetch(url='http://railyatri.in',deadline=60)
-            cookie_val = main_page.headers.get('Set-Cookie')
+            #main_page = urlfetch.fetch(url='http://railyatri.in',deadline=60)
+            #cookie_val = main_page.headers.get('Set-Cookie')
             #s = urlfetch.fetch(url=req,headers={'Cookie':'_railyatri_session=BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWQ1MmMwNzY0ZWNjYjU0NmJjMzg2NzhjODAzMjMwMTRkBjsAVEkiE2RhdGFfYWNjZXNzX2lkBjsARkkiFzB4MXkyeiUlOXYycyQkM2Y1ZAY7AEY%3D--c8e548e961cf3e035c07e0bfb5ccc9c293c25a33'},deadline=60)
-            s = urlfetch.fetch(url=req,headers={'Cookie':cookie_val},deadline=60)
+            #s = urlfetch.fetch(url=req,headers={'Cookie':cookie_val},deadline=60)
+            train_schedule_url = 'http://www.trainenquiry.com/RailYatri.ashx'
+            payload_data = {}
+            payload_data['RequestType'] = 'Location'
+            payload_data['codes'] = all_station_codes
+            payload_data['s'] = train_start_date
+            payload_data['t']  = train_number
+            payload_data = urllib.urlencode(payload_data)
+            s = urlfetch.fetch(url=train_schedule_url,payload=payload_data,method=urlfetch.POST,headers=req_headers,deadline=60)
             status_content = s.content
             json_content = json.loads(status_content.replace('jQuery%s('%random_number1, '').replace(')',''))
             if json_content.has_key('keys'):
@@ -64,10 +84,10 @@ class MainPage(webapp.RequestHandler):
                             ft = datetime.datetime.strptime(dept_time,'%Y-%m-%dT%H:%M:%S+05:30')
                             readable_time =  '%s:%s' % (ft.hour, ft.minute)
                             readable_date =  '%s-%s-%s' % (ft.day, ft.month, ft.year)
-                            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train(%s) is scheduled to start from %s at %s (%s)<br />Thanks to Railyatri.in</body></html>'%(train_number, dept_name, readable_time, readable_date)) 
+                            self.response.out.write('<html><head><meta name="txtweb-appkey" content="app-id" /></head><body>Train(%s) is scheduled to start from %s at %s (%s)<br />Thanks to Railyatri.in</body></html>'%(train_number, dept_name, readable_time, readable_date)) 
                             break
                 else:
-                    self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
+                    self.response.out.write('<html><head><meta name="txtweb-appkey" content="app-id" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
                 return 
             last_location = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_name']
             last_location_code = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['running_info']['last_stn']['station_code']
@@ -77,7 +97,7 @@ class MainPage(webapp.RequestHandler):
            
             next_station_code = ''
             if not json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))].has_key('station_updates'):
-                self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
+                self.response.out.write('<html><head><meta name="txtweb-appkey" content="app-id" /></head><body>Sorry, No information is available for this train. <br /> Please try again later! <br />Thanks to Railyatri.in</body></html>')
                 return
             station_updates = json_content['%s_%s'%(train_number,train_start_date.replace('-','_'))]['station_updates']
             delay_mins = ''
@@ -133,7 +153,7 @@ class MainPage(webapp.RequestHandler):
                 eta_time =  '%s:%s' % (ns_eta.hour, ns_eta.minute)
                 eta_date =  '%s-%s-%s' % (ns_eta.day, ns_eta.month, ns_eta.year)
                 msg = msg+"<br /><br />Next Station update:<br /><br />Station Name: %s<br />Scheduled: %s(%s)<br />Expected: %s(%s)" % (next_station_name, sta_time, sta_date, eta_time, eta_date)
-            self.response.out.write('<html><head><meta name="txtweb-appkey" content="appid" /></head><body>Train running status update - %s : %s' % (train_number, user_train_date))
+            self.response.out.write('<html><head><meta name="txtweb-appkey" content="app-id" /></head><body>Train running status update - %s : %s' % (train_number, user_train_date))
             self.response.out.write(msg+"<br />Thanks to Railyatri.in</body></html>")
             
 
